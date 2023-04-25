@@ -5,8 +5,9 @@ from PIL import Image
 from skimage import io
 import streamlit as st
 
-# タイトル
-st.title('航空写真タイル分類アプリ')
+# タイトルと説明
+st.title('Google mapの航空写真をスクリーンショットしてアップロードしてみよう！')
+st.write('このアプリは、アップロードされた航空写真を分割して、海、山、平地の画像をクラスタリングし、それぞれの割合を表示します。')
 
 # 入力画像アップロード
 st.write('## 入力画像をアップロード')
@@ -14,10 +15,12 @@ input_image = st.file_uploader('画像ファイルをアップロードしてく
 
 # タイル数設定
 st.write('## タイル数を設定')
+st.write('推奨は1000ですが、結果に応じて調整してください')
 num_tiles = st.slider('分割するタイルの数を設定してください', min_value=1, max_value=5000, value=1000)
 
 # 緑色の閾値設定
 st.write('## 緑色の閾値を設定')
+st.write('推奨は70ですが、結果に応じて調整してください')
 green_threshold = st.slider('緑色の閾値を設定してください', min_value=0, max_value=255, value=70)
 
 # 入力画像の表示
@@ -58,7 +61,10 @@ if input_image is not None:
     sea_ratio = sea_tiles / total_tiles * 100
     mountain_ratio = mountain_tiles / total_tiles * 100
     plain_ratio = plain_tiles / total_tiles * 100
-    st.write(f"### 分類結果")
-    st.write(f"Sea: {sea_ratio:.1f}%\nMountain: {mountain_ratio:.1f}%\nPlain: {plain_ratio:.1f}%")
+    st.write('## 結果')
+    st.markdown(f'アップロードされた写真の中に...')
+    st.write(f'## 海は **{sea_ratio:.1f}%**、山は **{mountain_ratio:.1f}%**、平地は **{plain_ratio:.1f}%** 含まれます。')
+
+
 else:
     st.warning('画像ファイルをアップロードしてください')
