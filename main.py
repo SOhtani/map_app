@@ -32,6 +32,11 @@ if input_image is not None:
     # 入力画像を読み込み
     img_array = np.array(img)
 
+    # アルファチャンネルが存在する場合、削除
+    if img_array.shape[2] == 4:
+        img_array = img_array[:, :, :3]
+
+
     # 入力画像のサイズ
     height, width, channels = img_array.shape
 
@@ -43,6 +48,7 @@ if input_image is not None:
     sea_tiles = 0
     mountain_tiles = 0
     plain_tiles = 0
+    mask_array = np.zeros((height, width, channels), dtype=np.uint8)
     for i in range(int(np.sqrt(num_tiles))):
         for j in range(int(np.sqrt(num_tiles))):
             x = j * tile_width
@@ -50,11 +56,14 @@ if input_image is not None:
             tile = img_array[y:y+tile_height, x:x+tile_width]
             if np.mean(tile[:,:,0]) < np.mean(tile[:,:,1]) < np.mean(tile[:,:,2]):
                 sea_tiles += 1
+                mask_array[y:y+tile_height, x:x+tile_width] = [0, 0, 255]  # Blue for sea
             else:
                 if np.mean(tile[:,:,1]) > green_threshold:
                     plain_tiles += 1
+                    mask_array[y:y+tile_height, x:x+tile_width] = [255, 0, 0] # Green for plain
                 else:
                     mountain_tiles += 1
+                    mask_array[y:y+tile_height, x:x+tile_width] = [0, 255, 0] # Red for mountain
 
     # 各クラスターに分類されたタイル画像数の総タイル数における割合を表示
     total_tiles = sea_tiles + mountain_tiles + plain_tiles
@@ -64,6 +73,14 @@ if input_image is not None:
     st.write('## 結果')
     st.markdown(f'アップロードされた写真の中に...')
     st.write(f'## 海は **{sea_ratio:.1f}%**、山は **{mountain_ratio:.1f}%**、平地は **{plain_ratio:.1f}%** 含まれます。')
+
+    # 可視化された分類画像を表示
+    st.write('### 分類されたタイルの可視化')
+    alpha = 0.5  # 透明度を設定 (0: 完全に透明, 1: 完全に不透明)
+    overlay_array = img_array.copy()
+    overlay_array[mask_array != 0] = (alpha * img_array + (1 - alpha) * mask_array)[mask_array != 0]
+    overlay_img = Image.fromarray(overlay_array)
+    st.image(overlay_img, use_column_width=True)
 
 
 else:
